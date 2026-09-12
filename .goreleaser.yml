@@ -1,0 +1,67 @@
+version: 2
+
+# Registry names artifacts after the provider, not after the checkout directory.
+project_name: terraform-provider-nxs-anomaly
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    hooks:
+      post:
+        - cmd: >-
+            sh -c 'if [ "{{ .Os }}_{{ .Arch }}" = "linux_amd64" ]; then
+            cp terraform-registry-manifest.json dist/{{ .ProjectName }}_{{ .Version }}_manifest.json;
+            fi'
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    binary: "{{ .ProjectName }}_v{{ .Version }}"
+
+archives:
+  - formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  # Terraform Registry reads the protocol version from this file and requires
+  # it to be covered by the signed checksums.
+  extra_files:
+    - glob: dist/*_manifest.json
+  name_template: "{{ .ProjectName }}_{{ .Version }}_SHA256SUMS"
+  algorithm: sha256
+
+signs:
+  - artifacts: checksum
+    args:
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
+release:
+  extra_files:
+    - glob: dist/*_manifest.json
+  # Registry ignores drafts: a version reaches it only when a person presses
+  # Publish release, and a published Registry version cannot be taken back.
+  draft: true
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch
