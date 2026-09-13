@@ -1,0 +1,77 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Vet
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go build ./...
+      - run: go vet ./...
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go test ./... -run "^Test[^A]" -count=1 -v
+
+  docs:
+    name: Documentation and Examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.0
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive examples
+      - run: make docs-check
+      - run: make build
+      - name: Validate the complete example with the local provider
+        run: |
+          cat > "$RUNNER_TEMP/terraform.rc" <<EOF
+          provider_installation {
+            dev_overrides {
+              "nixys/nxs-anomaly" = "$GITHUB_WORKSPACE"
+            }
+            direct {}
+          }
+          EOF
+          TF_CLI_CONFIG_FILE="$RUNNER_TEMP/terraform.rc" terraform -chdir=examples/complete validate
+
+  testacc:
+    name: Acceptance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.0
+          terraform_wrapper: false
+      - run: bash scripts/run_acceptance_tests.sh

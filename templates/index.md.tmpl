@@ -1,0 +1,27 @@
+---
+page_title: "nxs-anomaly Provider"
+description: |-
+  Manage nxs-anomaly users, teams, on-call schedules, escalation chains, integrations, ChatOps channels, and maintenance windows.
+---
+
+# nxs-anomaly Provider
+
+Manage [nxs-anomaly](https://github.com/nixys/nxs-anomaly) alerting and on-call
+configuration as code. The Registry source is `nixys/nxs-anomaly`; use the local
+name `anomaly` for the `anomaly_*` resources and data sources.
+
+Requires Terraform 1.0 or later and a compatible nxs-anomaly `/api/v1/` API.
+Authenticate with an API key. Explicit provider attributes override environment
+variables. API keys and sensitive resource values can be stored in Terraform
+state, so use a backend with appropriate access controls.
+
+## Example Usage
+
+{{ tffile .ExampleFile }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Guides
+
+See the [usage guide](guides/usage.md) for resource configuration, operational
+reports, import commands, and complete on-call examples.
