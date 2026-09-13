@@ -8,7 +8,7 @@
 - Add the reusable on-call module sample in `examples/module`.
 - Add the project logo to the README.
 
-## Unreleased
+## 0.0.17
 
 - Translate repository documentation and development instructions into English.
 - Add Registry examples for all 8 resources and 18 data sources, resource import
@@ -21,3 +21,6 @@
 - Declare Terraform provisioning ownership in API requests.
 - Correct outdated acceptance configurations and verify maintenance-window and
   schedule-override imports, plus recreation after an external deletion.
+- Remove the GitHub Actions acceptance-test job: it has no credentials for the
+  private nxs-anomaly service repository, which only GitLab CI can access via
+  `CI_JOB_TOKEN`.
