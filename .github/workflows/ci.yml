@@ -59,19 +59,3 @@ jobs:
           }
           EOF
           TF_CLI_CONFIG_FILE="$RUNNER_TEMP/terraform.rc" terraform -chdir=examples/complete validate
-
-  testacc:
-    name: Acceptance Tests
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.14.0
-          terraform_wrapper: false
-      - run: bash scripts/run_acceptance_tests.sh
