@@ -24,3 +24,7 @@
 - Remove the GitHub Actions acceptance-test job: it has no credentials for the
   private nxs-anomaly service repository, which only GitLab CI can access via
   `CI_JOB_TOKEN`.
+
+## 0.0.18
+
+- Move the README title above the project logo.
