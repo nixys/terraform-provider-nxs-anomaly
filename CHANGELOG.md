@@ -28,3 +28,7 @@
 ## 0.0.18
 
 - Move the README title above the project logo.
+
+## 0.0.19
+
+- Add a Terraform Registry badge to the README.

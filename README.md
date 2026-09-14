@@ -4,6 +4,8 @@
   <img src="logo.png" alt="nxs-anomaly" width="600">
 </p>
 
+[![Terraform Registry](https://img.shields.io/badge/Terraform-Registry-7B42BC?logo=terraform&logoColor=white)](https://registry.terraform.io/providers/nixys/nxs-anomaly/latest)
+
 Terraform provider for managing [nxs-anomaly](https://github.com/nixys/nxs-anomaly), a compact Go service for alerting and on-call notifications.
 
 Use infrastructure as code to manage:
