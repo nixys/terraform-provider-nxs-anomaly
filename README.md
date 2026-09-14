@@ -1,8 +1,8 @@
+# Terraform Provider: nxs-anomaly
+
 <p align="center">
   <img src="logo.png" alt="nxs-anomaly" width="600">
 </p>
-
-# Terraform Provider: nxs-anomaly
 
 Terraform provider for managing [nxs-anomaly](https://github.com/nixys/nxs-anomaly), a compact Go service for alerting and on-call notifications.
 
