@@ -59,14 +59,14 @@ Use infrastructure as code to manage:
 
 ### Terraform Registry
 
-After the first public release is published, add the following `required_providers` block:
+Add the following `required_providers` block:
 
 ```hcl
 terraform {
   required_providers {
     anomaly = {
       source  = "nixys/nxs-anomaly"
-      version = "~> 0.1"
+      version = "~> 0.0"
     }
   }
 }
@@ -1173,7 +1173,7 @@ terraform {
   required_providers {
     anomaly = {
       source  = "nixys/nxs-anomaly"
-      version = "~> 0.1"
+      version = "~> 0.0"
     }
   }
 }

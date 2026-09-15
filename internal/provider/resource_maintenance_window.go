@@ -67,11 +67,11 @@ func (r *MaintenanceWindowResource) Schema(_ context.Context, _ resource.SchemaR
 			},
 			"starts_at": schema.StringAttribute{
 				Required:    true,
-				Description: "Window start (RFC3339).",
+				Description: "Window start (RFC3339). The API returns it in UTC. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server.",
 			},
 			"ends_at": schema.StringAttribute{
 				Required:    true,
-				Description: "Window end (RFC3339). Must be after starts_at.",
+				Description: "Window end (RFC3339). Must be after starts_at. The API returns it in UTC. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server.",
 			},
 			"created_at": schema.StringAttribute{Computed: true},
 			"provisioned_by": schema.StringAttribute{

@@ -20,10 +20,10 @@ resource "anomaly_maintenance_window" "db_upgrade" {
 
 ### Required
 
-- `ends_at` (String) Window end (RFC3339). Must be after starts_at.
+- `ends_at` (String) Window end (RFC3339). Must be after starts_at. The API returns it in UTC. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server.
 - `integration_ids` (List of String) Integrations covered by the window. Must name at least one: the API rejects an empty list so that one typo cannot silence the whole deployment.
 - `name` (String)
-- `starts_at` (String) Window start (RFC3339).
+- `starts_at` (String) Window start (RFC3339). The API returns it in UTC. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server.
 
 ### Optional
 

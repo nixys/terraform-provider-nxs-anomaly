@@ -103,7 +103,7 @@ func (r *ScheduleResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					"enabled": schema.BoolAttribute{
 						Optional: true, Computed: true, Default: booldefault.StaticBool(true),
 					},
-					"start_at": schema.StringAttribute{Required: true},
+					"start_at": schema.StringAttribute{Required: true, Description: "Rotation start time (RFC3339). The API returns it in the schedule's timezone. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server."},
 					"handoff_interval": schema.Int64Attribute{
 						Optional: true, Computed: true, Default: int64default.StaticInt64(1),
 					},
@@ -139,11 +139,11 @@ func (r *ScheduleResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 						},
 						"start_at": schema.StringAttribute{
 							Required:    true,
-							Description: "Shift start time (RFC3339).",
+							Description: "Shift start time (RFC3339). The API returns it in the schedule's timezone. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server.",
 						},
 						"end_at": schema.StringAttribute{
 							Required:    true,
-							Description: "Shift end time (RFC3339).",
+							Description: "Shift end time (RFC3339). The API returns it in the schedule's timezone. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server.",
 						},
 						"recurrence": schema.StringAttribute{
 							Optional:    true,
@@ -205,7 +205,9 @@ func (r *ScheduleResource) Create(ctx context.Context, req resource.CreateReques
 		resp.Diagnostics.AddError("create schedule failed", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, scheduleModelFromAPI(result))...)
+	model := scheduleModelFromAPI(result)
+	keepEquivalentScheduleTimes(&model, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *ScheduleResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -224,7 +226,9 @@ func (r *ScheduleResource) Read(ctx context.Context, req resource.ReadRequest, r
 		resp.Diagnostics.AddError("read schedule failed", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, scheduleModelFromAPI(result))...)
+	model := scheduleModelFromAPI(result)
+	keepEquivalentScheduleTimes(&model, state)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *ScheduleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -255,7 +259,9 @@ func (r *ScheduleResource) Update(ctx context.Context, req resource.UpdateReques
 		resp.Diagnostics.AddError("update schedule failed", err.Error())
 		return
 	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, scheduleModelFromAPI(result))...)
+	model := scheduleModelFromAPI(result)
+	keepEquivalentScheduleTimes(&model, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *ScheduleResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -406,4 +412,30 @@ func attrStr(attrs map[string]attr.Value, key string) string {
 		}
 	}
 	return ""
+}
+
+// keepEquivalentScheduleTimes keeps the configured spelling of every shift and
+// rotation time that the API returned as the same instant in the schedule's
+// timezone. Shifts are matched by position: the API keeps the order it is given.
+func keepEquivalentScheduleTimes(model *scheduleModel, prior scheduleModel) {
+	model.Rotation = keepObjectInstants(model.Rotation, prior.Rotation, rotationAttrTypes, "start_at")
+	if model.Shifts.IsNull() || model.Shifts.IsUnknown() || prior.Shifts.IsNull() || prior.Shifts.IsUnknown() {
+		return
+	}
+	current, old := model.Shifts.Elements(), prior.Shifts.Elements()
+	shifts := make([]attr.Value, len(current))
+	for i, elem := range current {
+		shifts[i] = elem
+		if i >= len(old) {
+			continue
+		}
+		c, okCurrent := elem.(types.Object)
+		p, okPrior := old[i].(types.Object)
+		if okCurrent && okPrior {
+			shifts[i] = keepObjectInstants(c, p, shiftAttrTypes, "start_at", "end_at")
+		}
+	}
+	if list, diags := types.ListValue(types.ObjectType{AttrTypes: shiftAttrTypes}, shifts); !diags.HasError() {
+		model.Shifts = list
+	}
 }
