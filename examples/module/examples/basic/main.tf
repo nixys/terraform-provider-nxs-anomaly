@@ -4,7 +4,7 @@ terraform {
   required_providers {
     anomaly = {
       source  = "nixys/nxs-anomaly"
-      version = "~> 0.0"
+      version = "~> 1.1"
     }
   }
 }

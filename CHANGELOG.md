@@ -46,3 +46,10 @@
   offset than the API returns show a one-time in-place update. Terraform requires
   a required attribute's plan to match the configuration, so the provider cannot
   suppress it.
+
+## 1.1.0
+
+- Start the 1.x release line. The README, the usage guide and every example now
+  require `~> 1.1`: the previous `~> 0.0` constraint admits only 0.x releases, so
+  `terraform init` would have kept installing 0.1.1.
+- No provider behaviour changes since 0.1.1.
