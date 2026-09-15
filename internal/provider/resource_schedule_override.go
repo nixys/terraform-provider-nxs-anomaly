@@ -47,8 +47,8 @@ func (r *ScheduleOverrideResource) Schema(_ context.Context, _ resource.SchemaRe
 				stringplanmodifier.RequiresReplace(),
 			}},
 			"user_id":  schema.StringAttribute{Required: true},
-			"start_at": schema.StringAttribute{Required: true, Description: "Override start time (RFC3339)."},
-			"until":    schema.StringAttribute{Required: true, Description: "Override end time (RFC3339)."},
+			"start_at": schema.StringAttribute{Required: true, Description: "Override start time (RFC3339). The API returns it in the schedule's timezone. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server."},
+			"until":    schema.StringAttribute{Required: true, Description: "Override end time (RFC3339). The API returns it in the schedule's timezone. After `terraform import`, a value written with another offset shows a one-time in-place update that changes nothing on the server."},
 			"reason": schema.StringAttribute{
 				Optional: true, Computed: true, Default: stringdefault.StaticString(""),
 			},
@@ -82,7 +82,9 @@ func (r *ScheduleOverrideResource) Create(ctx context.Context, req resource.Crea
 		return
 	}
 	override, schedule := overrideResponse(result)
-	resp.Diagnostics.Append(resp.State.Set(ctx, scheduleOverrideModelFromAPI(override, schedule, plan.ScheduleID.ValueString()))...)
+	model := scheduleOverrideModelFromAPI(override, schedule, plan.ScheduleID.ValueString())
+	keepEquivalentOverrideTimes(&model, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *ScheduleOverrideResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -102,7 +104,9 @@ func (r *ScheduleOverrideResource) Read(ctx context.Context, req resource.ReadRe
 	}
 	for _, override := range mapSliceFromMap(schedule, "overrides") {
 		if strFromMap(override, "id") == state.ID.ValueString() {
-			resp.Diagnostics.Append(resp.State.Set(ctx, scheduleOverrideModelFromAPI(override, schedule, state.ScheduleID.ValueString()))...)
+			model := scheduleOverrideModelFromAPI(override, schedule, state.ScheduleID.ValueString())
+			keepEquivalentOverrideTimes(&model, state)
+			resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 			return
 		}
 	}
@@ -121,7 +125,9 @@ func (r *ScheduleOverrideResource) Update(ctx context.Context, req resource.Upda
 		return
 	}
 	override, schedule := overrideResponse(result)
-	resp.Diagnostics.Append(resp.State.Set(ctx, scheduleOverrideModelFromAPI(override, schedule, plan.ScheduleID.ValueString()))...)
+	model := scheduleOverrideModelFromAPI(override, schedule, plan.ScheduleID.ValueString())
+	keepEquivalentOverrideTimes(&model, plan)
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
 func (r *ScheduleOverrideResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
@@ -175,4 +181,11 @@ func scheduleOverrideModelFromAPI(override, schedule map[string]any, scheduleID 
 		CreatedAt:  types.StringValue(strFromMap(override, "created_at")),
 		UpdatedAt:  types.StringValue(strFromMap(override, "updated_at")),
 	}
+}
+
+// keepEquivalentOverrideTimes keeps the configured spelling of start_at and until
+// when the API returned the same instant in the schedule's timezone.
+func keepEquivalentOverrideTimes(model *scheduleOverrideModel, prior scheduleOverrideModel) {
+	model.StartAt = keepInstant(prior.StartAt, model.StartAt)
+	model.Until = keepInstant(prior.Until, model.Until)
 }

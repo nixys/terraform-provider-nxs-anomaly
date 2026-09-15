@@ -32,3 +32,17 @@
 ## 0.0.19
 
 - Add a Terraform Registry badge to the README.
+
+## 0.1.1
+
+- Fix `terraform init` from the README and examples: they required `~> 0.1`,
+  which no published release matches; they now require `~> 0.0`.
+- Fix "Provider produced inconsistent result after apply" for `anomaly_schedule`
+  shifts and rotation and for `anomaly_schedule_override` when a time is written
+  with an offset other than the schedule's timezone (for example `Z` in a
+  `Europe/Moscow` schedule). The configured spelling is kept whenever the API
+  returns the same instant; a different instant is still reported as drift.
+- Document that, after `terraform import`, time attributes written with another
+  offset than the API returns show a one-time in-place update. Terraform requires
+  a required attribute's plan to match the configuration, so the provider cannot
+  suppress it.
