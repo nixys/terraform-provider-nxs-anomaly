@@ -37,7 +37,7 @@ resource "anomaly_user" "alice" {
 - `locale` (String) UI language for this person. Empty means the UI follows their browser.
 - `notification_policies` (Attributes) Personal notification policies for default and important alerts. (see [below for nested schema](#nestedatt--notification_policies))
 - `notification_targets` (Attributes List) List of notification targets for this user. (see [below for nested schema](#nestedatt--notification_targets))
-- `on_duty` (Boolean)
+- `on_duty` (Boolean) Manual on-duty flag. Leave unset to let responders toggle it through the API or UI.
 - `phone` (String)
 - `priority` (String) Notification priority: low, medium, high.
 - `role` (String) Login role: viewer, responder, editor, admin; empty disables login permissions.

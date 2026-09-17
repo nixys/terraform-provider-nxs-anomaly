@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/listplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -123,7 +123,13 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"on_duty": schema.BoolAttribute{
 				Optional: true,
 				Computed: true,
-				Default:  booldefault.StaticBool(false),
+				// No default: the API lets responders take and hand over duty
+				// (duty-on / duty-off) on objects Terraform manages. A default of
+				// false planned every such change back, so the next apply silently
+				// took the on-call engineer off duty. Unset in configuration, the
+				// flag is left to the API; set, Terraform manages it.
+				PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()},
+				Description:   "Manual on-duty flag. Leave unset to let responders toggle it through the API or UI.",
 			},
 			"priority": schema.StringAttribute{
 				Optional:    true,
@@ -312,13 +318,15 @@ func userBody(plan userModel) map[string]any {
 		"telegram_id":          plan.TelegramID.ValueString(),
 		"timezone":             plan.Timezone.ValueString(),
 		"locale":               plan.Locale.ValueString(),
-		"on_duty":              plan.OnDuty.ValueBool(),
 		"priority":             plan.Priority.ValueString(),
 		"role":                 plan.Role.ValueString(),
 		"notification_targets": notificationTargetsFromPlan(plan.NotificationTargets),
 	}
 	if !plan.Username.IsNull() && !plan.Username.IsUnknown() {
 		body["username"] = plan.Username.ValueString()
+	}
+	if !plan.OnDuty.IsNull() && !plan.OnDuty.IsUnknown() {
+		body["on_duty"] = plan.OnDuty.ValueBool()
 	}
 	if !plan.NotificationPolicies.IsNull() && !plan.NotificationPolicies.IsUnknown() {
 		body["notification_policies"] = notificationPoliciesFromPlan(plan.NotificationPolicies)

@@ -53,3 +53,17 @@
   require `~> 1.1`: the previous `~> 0.0` constraint admits only 0.x releases, so
   `terraform init` would have kept installing 0.1.1.
 - No provider behaviour changes since 0.1.1.
+
+## Unreleased
+
+- `anomaly_user.on_duty` is no longer forced to `false`. Unset in configuration it
+  is not sent and follows the API, so a responder who takes duty through the API
+  or UI is not taken off duty by the next `apply`; set, Terraform manages it.
+- The complete example, the usage guide and the module example define the "Ops
+  Weekly Rotation" as a `rotation`. Two weekly-recurring shifts a week apart both
+  recur every week, so from the second week both people were on call at once.
+- With nxs-anomaly releases that stop returning `webhook_secret`, the configured
+  secret stays in state; out-of-band changes to it can no longer be detected.
+- Deleting a user, team, schedule or escalation chain that paging still uses is
+  refused by those releases with 409. Terraform orders deletes by dependency, but
+  replacing such an object in place needs `create_before_destroy`.

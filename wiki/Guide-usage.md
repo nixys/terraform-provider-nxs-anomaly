@@ -1221,20 +1221,15 @@ resource "anomaly_schedule" "ops_weekly" {
   timezone = "Europe/Moscow"
   team_id  = anomaly_team.ops.id
 
-  shifts = [
-    {
-      user_id    = anomaly_user.alice.id
-      start_at   = "2026-06-01T09:00:00+03:00"
-      end_at     = "2026-06-08T09:00:00+03:00"
-      recurrence = "weekly"
-    },
-    {
-      user_id    = anomaly_user.bob.id
-      start_at   = "2026-06-08T09:00:00+03:00"
-      end_at     = "2026-06-15T09:00:00+03:00"
-      recurrence = "weekly"
-    }
-  ]
+  # Alice and Bob take turns, a week each, handing over on Mondays at 09:00.
+  # Two weekly-recurring shifts a week apart would not rotate: both recur every
+  # week, so from the second week both people are on call at once.
+  rotation = {
+    start_at         = "2026-06-01T09:00:00+03:00"
+    handoff_interval = 1
+    handoff_unit     = "weeks"
+    participant_ids  = [anomaly_user.alice.id, anomaly_user.bob.id]
+  }
 }
 
 # Escalation chains

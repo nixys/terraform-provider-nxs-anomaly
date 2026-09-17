@@ -75,20 +75,6 @@ module "oncall" {
         handoff_unit     = "weeks"
         participant_keys = ["alice", "bob"]
       }
-      shifts = [
-        {
-          user_key   = "alice"
-          start_at   = "2026-06-01T09:00:00+03:00"
-          end_at     = "2026-06-08T09:00:00+03:00"
-          recurrence = "weekly"
-        },
-        {
-          user_key   = "bob"
-          start_at   = "2026-06-08T09:00:00+03:00"
-          end_at     = "2026-06-15T09:00:00+03:00"
-          recurrence = "weekly"
-        },
-      ]
     }
   }
 

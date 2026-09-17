@@ -78,6 +78,14 @@ module "oncall" {
         { channel = "telegram", target = "111111111" },
       ]
     }
+    bob = {
+      name        = "Bob Jones"
+      email       = "bob@example.com"
+      telegram_id = "222222222"
+      notification_targets = [
+        { channel = "telegram", target = "222222222" },
+      ]
+    }
   }
 
   team_name = "Ops Team"
@@ -86,13 +94,12 @@ module "oncall" {
     ops_weekly = {
       name     = "Ops Weekly Rotation"
       timezone = "Europe/Moscow"
-      shifts = [
-        {
-          user_key = "alice"
-          start_at = "2026-06-01T09:00:00+03:00"
-          end_at   = "2026-06-08T09:00:00+03:00"
-        },
-      ]
+      rotation = {
+        start_at         = "2026-06-01T09:00:00+03:00"
+        handoff_interval = 1
+        handoff_unit     = "weeks"
+        participant_keys = ["alice", "bob"]
+      }
     }
   }
 
