@@ -448,3 +448,16 @@ func assertAttrStr(t *testing.T, attrs map[string]attr.Value, key, want string) 
 		t.Errorf("attrs[%q] = %q; want %q", key, s.ValueString(), want)
 	}
 }
+
+// Unset on_duty must not be sent: responders take and hand over duty through
+// the API, and sending false on every apply took them off duty.
+func TestUserBodyLeavesUnsetOnDutyAlone(t *testing.T) {
+	plan := userModel{OnDuty: types.BoolNull(), Username: types.StringNull(), NotificationPolicies: types.ObjectNull(nil)}
+	if _, sent := userBody(plan)["on_duty"]; sent {
+		t.Error("on_duty sent although it is not in the configuration")
+	}
+	plan.OnDuty = types.BoolValue(true)
+	if got := userBody(plan)["on_duty"]; got != true {
+		t.Errorf("on_duty = %v, want true when configured", got)
+	}
+}
