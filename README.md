@@ -27,9 +27,9 @@ Use infrastructure as code to manage:
 - [Wiki](wiki/Home.md).
 - [Contributing](CONTRIBUTING.md) and [release procedure](RELEASING.md).
 
-The public Registry address is `nixys/nxs-anomaly`. Registry installation becomes
-available after the first signed release is published and registered. Until then,
-use a local build. The examples use the intended `0.1.x` public release series.
+The provider is published in the [Terraform Registry](https://registry.terraform.io/providers/nixys/nxs-anomaly/latest)
+as `nixys/nxs-anomaly`, with signed releases. The examples require the `1.x` release
+line (`~> 1.1`); see the [changelog](CHANGELOG.md) for what changed between releases.
 Resource and data-source schemas in `docs/` are the authoritative attribute reference.
 
 ## Contents
@@ -67,7 +67,7 @@ Resource and data-source schemas in `docs/` are the authoritative attribute refe
 |-----------|-------------------|
 | Terraform | 1.0 |
 | nxs-anomaly | A compatible API `/api/v1/` release; verify acceptance tests for the target service version |
-| Go (building from source) | 1.25.8 (see `go.mod`) |
+| Go (building from source) | 1.27.1 (see `go.mod`) |
 
 ---
 

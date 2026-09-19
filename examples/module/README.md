@@ -26,18 +26,13 @@ computed IDs around by hand:
 | Component | Version |
 |-----------|---------|
 | Terraform | >= 1.3 (requires `optional()` with default values) |
-| `nixys/nxs-anomaly` provider | >= 0.0.11 |
+| `nixys/nxs-anomaly` provider | >= 1.1.2, < 2.0.0 |
 
-> **Provider 0.0.11 or newer is required** — it introduced `integration.pipeline`,
-> which the module passes through. On 0.0.10 a configuration with `pipeline` will
-> fail `terraform validate`.
->
-> **0.0.10 is a breaking provider release.** It removed `anomaly_grafana_plugin`
-> (the `/api/v1/grafana-plugins` route no longer exists in the service) and added
-> `anomaly_maintenance_window`, `integration.heartbeat`, and `allow_uncovered` on
-> the NOTIFY_SCHEDULE step. The module requires these features and will not work
-> on 0.0.9 or older. If `anomaly_grafana_plugin` resources remain in state, remove
-> them (`terraform state rm`) before upgrading.
+> **Provider 1.1.2 or newer is required.** Earlier releases fail apply with
+> "Provider produced inconsistent result" for a heartbeat the API normalises
+> (`grace_seconds = 0` or `interval_seconds` below 60), then replace the integration
+> with a new routing key on every later apply. 1.1.1 also stopped forcing
+> `anomaly_user.on_duty` to `false`. See the [provider changelog](../../CHANGELOG.md).
 
 > **Provider name.** The provider's local name is `anomaly`; resources are named
 > `anomaly_user`, `anomaly_team`, and so on. In the Terraform Registry the provider

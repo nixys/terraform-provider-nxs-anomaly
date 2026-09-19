@@ -6,7 +6,7 @@ terraform {
     # The Terraform Registry address must match the one in the root module.
     anomaly = {
       source  = "nixys/nxs-anomaly"
-      version = ">= 0.0.11"
+      version = ">= 1.1.2, < 2.0.0"
     }
   }
 }
