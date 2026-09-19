@@ -51,7 +51,7 @@ Use infrastructure as code to manage:
 |-----------|-------------------|
 | Terraform | 1.0 |
 | nxs-anomaly | A compatible API `/api/v1/` release; verify acceptance tests for the target service version |
-| Go (building from source) | 1.25.8 (see `go.mod`) |
+| Go (building from source) | 1.27.1 (see `go.mod`) |
 
 ---
 

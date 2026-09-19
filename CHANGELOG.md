@@ -103,3 +103,14 @@
   public repository or the Registry. GitHub's published host keys are pinned
   instead of scanned: the scan used port 22 as well and silently left
   `known_hosts` empty.
+
+## 1.2.2
+
+- The README no longer says Registry installation waits for the first signed
+  release or refers to a `0.1.x` series: the provider is published in the
+  Registry and the examples use the 1.x line.
+- The module example requires provider `>= 1.1.2, < 2.0.0` instead of
+  `>= 0.0.11`. Earlier releases fail apply on a heartbeat the API normalises,
+  which the module's defaults can produce.
+- The README and usage guide list Go 1.27.1, the version `go.mod` requires.
+- No provider behaviour changes since 1.2.1.
