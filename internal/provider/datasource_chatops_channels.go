@@ -124,7 +124,12 @@ func (d *ChatopsChannelDataSource) Read(ctx context.Context, req datasource.Read
 			resp.Diagnostics.AddError("list ChatOps channels failed", err.Error())
 			return
 		}
-		item = lookupByName(items, config.Name.ValueString())
+		matched, matches := lookupByName(items, config.Name.ValueString())
+		if matches > 1 {
+			resp.Diagnostics.AddError(ambiguousNameError("chatops channel", config.Name.ValueString(), matches))
+			return
+		}
+		item = matched
 		if item == nil {
 			resp.Diagnostics.AddError("ChatOps channel not found", fmt.Sprintf("no channel with name %q", config.Name.ValueString()))
 			return

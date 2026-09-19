@@ -1,6 +1,6 @@
 # Contributing
 
-Use Go 1.25.8 or newer (the minimum in `go.mod`), GNU Make, Python 3, and
+Use Go 1.27.1 or newer (the minimum in `go.mod`), GNU Make, Python 3, and
 Terraform CLI. The provider uses Terraform Plugin Framework and protocol 6.
 
 ## Local checks

@@ -16,14 +16,16 @@ provider "anomaly" {
 }
 
 variable "anomaly_url" {
-  type    = string
-  default = "http://localhost:8080"
+  description = "API URL. Left null, the provider reads NXS_ANOMALY_URL."
+  type        = string
+  default     = null
 }
 
 variable "anomaly_api_key" {
-  type      = string
-  sensitive = true
-  default   = ""
+  description = "API key. Left null, the provider reads NXS_ANOMALY_API_KEY."
+  type        = string
+  sensitive   = true
+  default     = null
 }
 
 variable "webhook_secret" {
@@ -175,8 +177,8 @@ module "oncall" {
 }
 
 output "prometheus_webhook_url" {
-  description = "URL for configuring the Alertmanager webhook receiver."
-  value       = "${var.anomaly_url}/integrations/v1/alertmanager/${module.oncall.integration_keys["prometheus"]}"
+  description = "URL for configuring the Alertmanager webhook receiver; a path from the API root when anomaly_url is null."
+  value       = "${var.anomaly_url != null ? var.anomaly_url : ""}/integrations/v1/alertmanager/${module.oncall.integration_keys["prometheus"]}"
 }
 
 output "team_id" {

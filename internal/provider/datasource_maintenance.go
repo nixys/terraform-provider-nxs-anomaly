@@ -138,7 +138,12 @@ func (d *MaintenanceWindowDataSource) Read(ctx context.Context, req datasource.R
 			resp.Diagnostics.AddError("list maintenance windows failed", err.Error())
 			return
 		}
-		m = lookupByName(items, config.Name.ValueString())
+		matched, matches := lookupByName(items, config.Name.ValueString())
+		if matches > 1 {
+			resp.Diagnostics.AddError(ambiguousNameError("maintenance window", config.Name.ValueString(), matches))
+			return
+		}
+		m = matched
 		if m == nil {
 			resp.Diagnostics.AddError("maintenance window not found",
 				fmt.Sprintf("no maintenance window with name %q", config.Name.ValueString()))

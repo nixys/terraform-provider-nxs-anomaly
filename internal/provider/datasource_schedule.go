@@ -98,7 +98,12 @@ func (d *ScheduleDataSource) Read(ctx context.Context, req datasource.ReadReques
 			resp.Diagnostics.AddError("list schedules failed", err.Error())
 			return
 		}
-		m = lookupByName(items, config.Name.ValueString())
+		matched, matches := lookupByName(items, config.Name.ValueString())
+		if matches > 1 {
+			resp.Diagnostics.AddError(ambiguousNameError("schedule", config.Name.ValueString(), matches))
+			return
+		}
+		m = matched
 		if m == nil {
 			resp.Diagnostics.AddError("schedule not found", fmt.Sprintf("no schedule with name %q", config.Name.ValueString()))
 			return

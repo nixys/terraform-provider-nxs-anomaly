@@ -145,3 +145,48 @@ resource "anomaly_integration" "secret_test" {
 		},
 	})
 }
+
+// The API normalises heartbeat values (grace 0 → interval/3, interval below 60
+// → 60). Spelled the other way — the module example passes grace_seconds = 0 —
+// apply failed with "inconsistent result", tainted the integration, and every
+// later apply replaced it with a new routing key.
+func TestAccIntegrationResource_heartbeatAsWritten(t *testing.T) {
+	testAccPreCheck(t)
+
+	config := providerConfig() + `
+resource "anomaly_integration" "hb" {
+  name      = "Heartbeat As Written"
+  heartbeat = { interval_seconds = 30, grace_seconds = 0 }
+}
+`
+	var firstKey string
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("anomaly_integration.hb", "heartbeat.interval_seconds", "30"),
+					resource.TestCheckResourceAttr("anomaly_integration.hb", "heartbeat.grace_seconds", "0"),
+					resource.TestCheckResourceAttrWith("anomaly_integration.hb", "key", func(v string) error {
+						firstKey = v
+						return nil
+					}),
+				),
+			},
+			{
+				Config:   config,
+				PlanOnly: true,
+			},
+			{
+				Config: config,
+				Check: resource.TestCheckResourceAttrWith("anomaly_integration.hb", "key", func(v string) error {
+					if v != firstKey {
+						return fmt.Errorf("the integration was replaced: key %q → %q", firstKey, v)
+					}
+					return nil
+				}),
+			},
+		},
+	})
+}

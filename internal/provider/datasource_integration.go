@@ -122,7 +122,12 @@ func (d *IntegrationDataSource) Read(ctx context.Context, req datasource.ReadReq
 			resp.Diagnostics.AddError("list integrations failed", err.Error())
 			return
 		}
-		m = lookupByName(items, config.Name.ValueString())
+		matched, matches := lookupByName(items, config.Name.ValueString())
+		if matches > 1 {
+			resp.Diagnostics.AddError(ambiguousNameError("integration", config.Name.ValueString(), matches))
+			return
+		}
+		m = matched
 		if m == nil {
 			resp.Diagnostics.AddError("integration not found", fmt.Sprintf("no integration with name %q", config.Name.ValueString()))
 			return

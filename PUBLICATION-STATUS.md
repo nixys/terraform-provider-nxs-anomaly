@@ -8,7 +8,7 @@ remote pushes, releases, or Registry registrations were performed.
 - English documentation, comments, and examples; 8 resource pages and 18
   data-source pages, all with examples; all resources have import commands.
 - 32 generated wiki pages, also copied into the local GitLab wiki checkout.
-- Build, `go vet`, and unit/regression tests pass with Go 1.26.3.
+- Build, `go vet`, and unit/regression tests pass with Go 1.27.1.
 - All 21 live acceptance tests pass with Terraform 1.14.0, PostgreSQL 17,
   and service commit `d124e0a7bdef5d964a5aebe7c77caa79d068b8e2`.
   The service checkout was clean; the test database was disposable.
