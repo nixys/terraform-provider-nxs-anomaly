@@ -103,7 +103,12 @@ func (d *EscalationChainDataSource) Read(ctx context.Context, req datasource.Rea
 			resp.Diagnostics.AddError("list escalation chains failed", err.Error())
 			return
 		}
-		m = lookupByName(items, config.Name.ValueString())
+		matched, matches := lookupByName(items, config.Name.ValueString())
+		if matches > 1 {
+			resp.Diagnostics.AddError(ambiguousNameError("escalation chain", config.Name.ValueString(), matches))
+			return
+		}
+		m = matched
 		if m == nil {
 			resp.Diagnostics.AddError("escalation chain not found", fmt.Sprintf("no chain with name %q", config.Name.ValueString()))
 			return

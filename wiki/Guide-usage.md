@@ -1126,6 +1126,42 @@ or a named person has explicitly accepted the listed blockers.
 
 ---
 
+## Deleting and Replacing Objects Paging Depends On
+
+nxs-anomaly refuses with `409` to delete a user, team, schedule or escalation
+chain that paging still points at, and names what points at it:
+
+```
+API error 409: user usr_60e775c3 is still used by: schedule "Ops Weekly"
+```
+
+Terraform orders deletes by dependency, so removing an object together with
+everything referencing it works as written. Replacing one in place does not:
+the default order destroys before it creates, and the destroy is refused while
+the old object is still referenced. Give such a resource `create_before_destroy`:
+
+```hcl
+resource "anomaly_user" "alice" {
+  name     = "Alice Smith"
+  username = "alice"
+  email    = "alice@example.com"
+
+  # The replacement is created and the references move to it before the old
+  # user is deleted; otherwise the delete is refused with 409.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+```
+
+## Looking Objects up by Name
+
+Every `name` lookup requires the name to identify exactly one object. Two teams
+called `platform` make the data source fail rather than pick one, because which
+one it picked would be invisible in the plan. Use the id when names repeat.
+
+---
+
 ## Importing Existing Resources
 
 All 8 resources support `terraform import`. Use the nxs-anomaly object ID, except for schedule overrides, which require `<schedule_id>/<override_id>`.

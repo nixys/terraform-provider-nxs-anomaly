@@ -173,8 +173,8 @@ resource "anomaly_chatops_channel" "ops_alerts" {
 # ── Outputs ───────────────────────────────────────────────────────────────────
 
 output "prometheus_webhook_url" {
-  description = "URL for the Alertmanager webhook receiver"
-  value       = "${var.anomaly_url}/integrations/v1/alertmanager/${anomaly_integration.prometheus.key}"
+  description = "URL for the Alertmanager webhook receiver; a path from the API root when anomaly_url is null"
+  value       = "${var.anomaly_url != null ? var.anomaly_url : ""}/integrations/v1/alertmanager/${anomaly_integration.prometheus.key}"
 }
 
 output "oncall_schedule_id" {
@@ -184,8 +184,9 @@ output "oncall_schedule_id" {
 # ── Variables ─────────────────────────────────────────────────────────────────
 
 variable "anomaly_url" {
-  type    = string
-  default = "http://localhost:8080"
+  description = "API URL. Left null, the provider reads NXS_ANOMALY_URL."
+  type        = string
+  default     = null
 }
 
 variable "webhook_secret" {

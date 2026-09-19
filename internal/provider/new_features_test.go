@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -237,9 +238,12 @@ func TestLookupByName_Found(t *testing.T) {
 		{"id": "2", "name": "Beta"},
 		{"id": "3", "name": "Gamma"},
 	}
-	result := lookupByName(items, "Beta")
+	result, matches := lookupByName(items, "Beta")
 	if result == nil {
 		t.Fatal("expected to find Beta")
+	}
+	if matches != 1 {
+		t.Errorf("matches = %d; want 1", matches)
 	}
 	if result["id"] != "2" {
 		t.Errorf("id = %v; want 2", result["id"])
@@ -248,16 +252,40 @@ func TestLookupByName_Found(t *testing.T) {
 
 func TestLookupByName_NotFound(t *testing.T) {
 	items := []map[string]any{{"id": "1", "name": "Alpha"}}
-	result := lookupByName(items, "Missing")
+	result, matches := lookupByName(items, "Missing")
+	if matches != 0 {
+		t.Errorf("matches = %d; want 0", matches)
+	}
 	if result != nil {
 		t.Errorf("expected nil, got %v", result)
 	}
 }
 
 func TestLookupByName_EmptyList(t *testing.T) {
-	result := lookupByName(nil, "anything")
-	if result != nil {
+	result, matches := lookupByName(nil, "anything")
+	if result != nil || matches != 0 {
 		t.Error("expected nil for empty list")
+	}
+}
+
+// A name that matches twice is the case that used to be answered silently with
+// whichever object came first — so a configuration pointed at one of two teams
+// and nobody could tell which.
+func TestLookupByName_Ambiguous(t *testing.T) {
+	items := []map[string]any{
+		{"id": "1", "name": "dup"},
+		{"id": "2", "name": "dup"},
+	}
+	result, matches := lookupByName(items, "dup")
+	if matches != 2 {
+		t.Fatalf("matches = %d; want 2", matches)
+	}
+	if result == nil {
+		t.Fatal("expected the first match to still be returned for the caller to report")
+	}
+	summary, detail := ambiguousNameError("team", "dup", matches)
+	if summary == "" || !strings.Contains(detail, "id") {
+		t.Errorf("error must point at the id: %q / %q", summary, detail)
 	}
 }
 
@@ -441,7 +469,7 @@ func TestStrDefault(t *testing.T) {
 
 func TestClientWithCustomTimeout(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, `{"ok":true}`)
+		_, _ = fmt.Fprint(w, `{"ok":true}`)
 	}))
 	defer srv.Close()
 

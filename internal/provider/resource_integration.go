@@ -276,6 +276,7 @@ func (r *IntegrationResource) Create(ctx context.Context, req resource.CreateReq
 		return
 	}
 	model := integrationModelFromAPI(result)
+	model.Heartbeat = keepEquivalentHeartbeat(model.Heartbeat, plan.Heartbeat)
 	if !plan.WebhookSecret.IsNull() && !plan.WebhookSecret.IsUnknown() {
 		model.WebhookSecret = plan.WebhookSecret
 	}
@@ -298,6 +299,7 @@ func (r *IntegrationResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 	model := integrationModelFromAPI(result)
+	model.Heartbeat = keepEquivalentHeartbeat(model.Heartbeat, state.Heartbeat)
 	if !state.WebhookSecret.IsNull() {
 		model.WebhookSecret = state.WebhookSecret
 	}
@@ -317,6 +319,7 @@ func (r *IntegrationResource) Update(ctx context.Context, req resource.UpdateReq
 		return
 	}
 	model := integrationModelFromAPI(result)
+	model.Heartbeat = keepEquivalentHeartbeat(model.Heartbeat, plan.Heartbeat)
 	if !plan.WebhookSecret.IsNull() && !plan.WebhookSecret.IsUnknown() {
 		model.WebhookSecret = plan.WebhookSecret
 	}

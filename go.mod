@@ -1,6 +1,6 @@
 module github.com/nixys/terraform-provider-nxs-anomaly
 
-go 1.25.8
+go 1.27.1
 
 require (
 	github.com/hashicorp/terraform-plugin-framework v1.19.0

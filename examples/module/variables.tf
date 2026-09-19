@@ -220,7 +220,8 @@ variable "integrations" {
     # the API keeps the current setting as is.
     heartbeat = optional(object({
       interval_seconds = optional(number, 0)
-      grace_seconds    = optional(number, 0)
+      # Left null, the API picks a third of the interval.
+      grace_seconds = optional(number)
     }))
 
     routes = list(object({

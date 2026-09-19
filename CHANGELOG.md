@@ -54,7 +54,7 @@
   `terraform init` would have kept installing 0.1.1.
 - No provider behaviour changes since 0.1.1.
 
-## Unreleased
+## 1.1.1
 
 - `anomaly_user.on_duty` is no longer forced to `false`. Unset in configuration it
   is not sent and follows the API, so a responder who takes duty through the API
@@ -67,3 +67,39 @@
 - Deleting a user, team, schedule or escalation chain that paging still uses is
   refused by those releases with 409. Terraform orders deletes by dependency, but
   replacing such an object in place needs `create_before_destroy`.
+
+## 1.1.2
+
+- A data source looked up by `name` now fails when more than one object carries
+  that name, instead of silently returning whichever came first.
+- `anomaly_integration.heartbeat` no longer fails apply with "Provider produced
+  inconsistent result" when written the way the API does not store it:
+  `grace_seconds = 0` (the API stores a third of the interval) or an
+  `interval_seconds` below 60 (raised to 60). The failed apply tainted the
+  integration, and every later apply replaced it with a new routing key. A value
+  the API only normalised is kept as written; any other difference is still
+  drift.
+- The module example no longer defaults `grace_seconds` to 0, which triggered the
+  failure above for every integration with a heartbeat.
+- The examples' `anomaly_url` and `anomaly_api_key` variables default to `null`.
+  Their `"http://localhost:8080"` and `""` defaults were set values, which the
+  provider prefers over `NXS_ANOMALY_URL` / `NXS_ANOMALY_API_KEY`, so the
+  environment variables the comments pointed to were never read.
+
+## 1.2.0
+
+- Build with Go 1.27 (latest stable, 1.27.1): `go.mod` declares `go 1.27.1`, the
+  GitLab pipeline runs `golang:1.27`, and the GitHub release workflow picks the
+  version up from `go.mod`. Building from source needs Go 1.27.1 or newer.
+- Lint with golangci-lint v2.13.2. v1.64.8 cannot read the export data of the
+  Go 1.27 standard library and stopped with an internal error; v2 also reports
+  unchecked `Close` errors, which are now handled explicitly.
+- No provider behaviour changes since 1.1.2.
+
+## 1.2.1
+
+- Publish to GitHub over SSH on port 443 (`ssh.github.com`). The runner cannot
+  reach `github.com:22`, so `publish:github` timed out and 1.2.0 never reached the
+  public repository or the Registry. GitHub's published host keys are pinned
+  instead of scanned: the scan used port 22 as well and silently left
+  `known_hosts` empty.

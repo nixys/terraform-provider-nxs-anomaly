@@ -53,7 +53,7 @@ func (c *testHTTPClient) delete(ctx context.Context, path string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode >= 400 {
 		return fmt.Errorf("external deletion failed: HTTP %d", resp.StatusCode)
 	}

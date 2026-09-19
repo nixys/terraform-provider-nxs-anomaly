@@ -77,7 +77,12 @@ func (d *TeamDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 			resp.Diagnostics.AddError("list teams failed", err.Error())
 			return
 		}
-		m = lookupByName(items, config.Name.ValueString())
+		matched, matches := lookupByName(items, config.Name.ValueString())
+		if matches > 1 {
+			resp.Diagnostics.AddError(ambiguousNameError("team", config.Name.ValueString(), matches))
+			return
+		}
+		m = matched
 		if m == nil {
 			resp.Diagnostics.AddError("team not found", fmt.Sprintf("no team with name %q", config.Name.ValueString()))
 			return
