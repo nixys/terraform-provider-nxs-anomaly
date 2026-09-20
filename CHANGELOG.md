@@ -114,3 +114,13 @@
   which the module's defaults can produce.
 - The README and usage guide list Go 1.27.1, the version `go.mod` requires.
 - No provider behaviour changes since 1.2.1.
+
+## 1.2.3
+
+- Remove the internal Nexus installation guide and the `publish:nexus` CI job;
+  the provider is installed from the Terraform Registry as `nixys/nxs-anomaly`.
+- Drop the stale publication-status report and the GitLab wiki notes from the
+  release procedure.
+- The acceptance test script clones the public nxs-anomaly repository by default.
+- The README and usage guide use `https://anomaly.example.com` as the example URL.
+- No provider behaviour changes since 1.2.2.
