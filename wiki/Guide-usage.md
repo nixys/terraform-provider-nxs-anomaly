@@ -99,7 +99,7 @@ provider_installation {
 
 ```hcl
 provider "anomaly" {
-  url     = "http://nxs-anomaly.internal:8080"
+  url     = "https://anomaly.example.com"
   api_key = var.anomaly_api_key
 }
 ```

@@ -28,7 +28,7 @@ last published release. A draft GitHub release is not ingested by the Registry.
    passphrase as `GPG_PASSPHRASE`. The release workflow obtains the fingerprint
    from the imported key. Never add either secret to repository files.
 5. If releasing through the internal mirror job, configure its existing
-   `GITHUB_KEY` deploy key with write access. Configure Nexus credentials separately.
+   `GITHUB_KEY` deploy key with write access.
 
 ## Prepare the release commit
 
@@ -59,8 +59,8 @@ It verifies the detached GPG signature unless `--allow-unsigned` is supplied.
 
 ## Create and inspect the draft
 
-For the internal mirror process, tag the reviewed internal commit, complete the
-Nexus pipeline, then run the existing manual `publish:github` job. That job
+For the internal mirror process, tag the reviewed internal commit, wait for the
+`build:binary` job, then run the existing manual `publish:github` job. That job
 exports tracked sources, excludes internal files, and pushes a release branch
 and tag. Merge the public release branch so `main` contains the release sources.
 For direct public development, push the reviewed commit and its release tag to
@@ -92,7 +92,7 @@ license, docs, and the final commit before publishing the draft.
    and select the namespace and repository. Complete the account prompts.
 3. Confirm the version, platforms, signing key, all 8 resources, all 18 data sources,
    and guides appear. Registry documentation comes from the tagged `docs/` tree;
-   the GitHub/GitLab wiki is a separate documentation surface.
+   the GitHub wiki is a separate documentation surface.
 4. In a clean directory without development overrides or a local plugin mirror,
    use the published version with `source = "nixys/nxs-anomaly"`, then run
    `terraform init` and `terraform providers schema -json`. Confirm installation
@@ -115,8 +115,7 @@ make wiki
 The reviewed pages live in `wiki/`, including `Home.md` and `_Sidebar.md`.
 Clone the target repository's `.wiki.git` repository, copy `wiki/*.md` into its
 root, review, commit, and push. GitHub may require creating the first page in its
-web interface before its wiki Git repository becomes available. GitLab uses
-`home.md` as the landing page; rename `Home.md` when preparing a GitLab checkout.
+web interface before its wiki Git repository becomes available.
 The pages use relative `.md` links and can also be read directly in the source repository.
 Regenerate the wiki whenever reference documentation or release instructions change.
 

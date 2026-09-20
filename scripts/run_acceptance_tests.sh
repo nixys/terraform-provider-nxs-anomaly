@@ -82,17 +82,7 @@ DATABASE_URL="postgres://${PG_USER}:${PG_PASS}@127.0.0.1:${PG_PORT}/${PG_DB}?ssl
 NXS_BINARY="${NXS_ANOMALY_BINARY:-}"
 
 if [[ -z "${NXS_BINARY}" ]]; then
-  REPO_URL="${NXS_ANOMALY_REPO:-}"
-  if [[ -z "${REPO_URL}" ]]; then
-    # In GitLab CI, use CI_JOB_TOKEN to access the service repository.
-    if [[ -n "${CI_SERVER_URL:-}" && -n "${CI_JOB_TOKEN:-}" ]]; then
-      SERVER="${CI_SERVER_URL#https://}"
-      SERVER="${SERVER#http://}"
-      REPO_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@${SERVER}/teamx/nxs-anomaly-group/nxs-anomaly.git"
-    else
-      REPO_URL="https://github.com/nixys/nxs-anomaly.git"
-    fi
-  fi
+  REPO_URL="${NXS_ANOMALY_REPO:-https://github.com/nixys/nxs-anomaly.git}"
 
   CLONE_DIR="/tmp/nxs-anomaly-src-$$"
   echo "==> Cloning the nxs-anomaly service repository"
