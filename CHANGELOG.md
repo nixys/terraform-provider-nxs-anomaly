@@ -124,3 +124,16 @@
 - The acceptance test script clones the public nxs-anomaly repository by default.
 - The README and usage guide use `https://anomaly.example.com` as the example URL.
 - No provider behaviour changes since 1.2.2.
+
+## 1.3.0
+
+- `headers` on `TRIGGER_WEBHOOK` escalation steps and on `anomaly_chatops_channel`
+  (nxs-anomaly 1.7.0 or newer): headers sent with every outbound post, so a
+  gateway that authenticates its callers with `Authorization` or `X-Api-Key` no
+  longer needs its key in the URL. The map is sensitive, values may be `env:`
+  references resolved by nxs-anomaly at send time, and names are written in
+  canonical form (`X-Api-Key`) — the validator names the spelling to use.
+  Removing `headers` from a ChatOps channel clears them on the server. The
+  escalation chain data sources return the attribute too.
+- The escalation chain example gave its wait step `duration_seconds`, which does
+  not exist and failed `terraform validate`; it now uses `delay_minutes`.

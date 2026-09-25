@@ -7,8 +7,8 @@ resource "anomaly_escalation_chain" "critical" {
       user_ids = [anomaly_user.alice.id]
     },
     {
-      kind             = "wait"
-      duration_seconds = 300
+      kind          = "wait"
+      delay_minutes = 5
     },
     {
       kind        = "notify_schedule"
@@ -17,6 +17,8 @@ resource "anomaly_escalation_chain" "critical" {
     {
       kind        = "trigger_webhook"
       webhook_url = "https://hooks.example.com/pagerduty-bridge"
+      # Sent with every post; env: is resolved by nxs-anomaly at send time.
+      headers = { "Authorization" = "env:PAGERDUTY_BRIDGE_TOKEN" }
     }
   ]
 }

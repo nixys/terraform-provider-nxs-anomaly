@@ -38,6 +38,7 @@ Read-Only:
 - `delay_minutes` (Number)
 - `fallback_to_all` (Boolean)
 - `from_position` (Number)
+- `headers` (Map of String, Sensitive)
 - `id` (String)
 - `kind` (String)
 - `max_repeat_count` (Number)
