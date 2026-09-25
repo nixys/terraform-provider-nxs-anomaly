@@ -14,8 +14,8 @@ resource "anomaly_escalation_chain" "critical" {
       user_ids = [anomaly_user.alice.id]
     },
     {
-      kind             = "wait"
-      duration_seconds = 300
+      kind          = "wait"
+      delay_minutes = 5
     },
     {
       kind        = "notify_schedule"
@@ -24,6 +24,8 @@ resource "anomaly_escalation_chain" "critical" {
     {
       kind        = "trigger_webhook"
       webhook_url = "https://hooks.example.com/pagerduty-bridge"
+      # Sent with every post; env: is resolved by nxs-anomaly at send time.
+      headers = { "Authorization" = "env:PAGERDUTY_BRIDGE_TOKEN" }
     }
   ]
 }
@@ -62,6 +64,7 @@ Optional:
 - `delay_minutes` (Number) Delay in minutes before the next step (WAIT).
 - `fallback_to_all` (Boolean) Notify all team members if no one is on duty (NOTIFY_DUTY_USERS).
 - `from_position` (Number) Step position (0-based) to jump back to (REPEAT).
+- `headers` (Map of String, Sensitive) TRIGGER_WEBHOOK only. Headers sent with every outbound post, retries included — typically `Authorization` or `X-Api-Key` for a gateway that authenticates its callers. Values may be `env:VARIABLE` references resolved by nxs-anomaly at send time (the production profile refuses inline values). Names are written in canonical form (`X-Api-Key`, not `x-api-key`), as the API stores them. `Host`, `Content-Length`, `Content-Type`, `Transfer-Encoding` and `Connection` cannot be set. Requires nxs-anomaly 1.7.0 or newer.
 - `id` (String)
 - `max_repeat_count` (Number) Maximum number of repetitions (REPEAT).
 - `project` (String) Issue tracker project identifier (CREATE_ISSUE).

@@ -54,6 +54,7 @@ var stepAttrTypes = map[string]attr.Type{
 	"user_id": types.StringType,
 	// TRIGGER_WEBHOOK
 	"webhook_url": types.StringType,
+	"headers":     types.MapType{ElemType: types.StringType},
 	// WAIT (field name matches engine: delay_minutes)
 	"delay_minutes": types.Int64Type,
 	// CREATE_ISSUE
@@ -140,6 +141,13 @@ func (r *EscalationChainResource) Schema(_ context.Context, _ resource.SchemaReq
 							Optional:    true,
 							Computed:    true,
 							Description: "Webhook URL (TRIGGER_WEBHOOK).",
+						},
+						"headers": schema.MapAttribute{
+							Optional:    true,
+							Sensitive:   true,
+							ElementType: types.StringType,
+							Description: "TRIGGER_WEBHOOK only. " + outboundHeadersDescription,
+							Validators:  outboundHeadersValidators(),
 						},
 						// WAIT
 						"delay_minutes": schema.Int64Attribute{
@@ -321,6 +329,9 @@ func stepsFromPlan(ctx context.Context, list types.List) []any {
 		setIfNonEmpty(step, a, "team_id")
 		setIfNonEmpty(step, a, "user_id")
 		setIfNonEmpty(step, a, "webhook_url")
+		if h := headersFromAttr(a["headers"]); h != nil {
+			step["headers"] = h
+		}
 		setIfNonEmpty(step, a, "tracker_type")
 		setIfNonEmpty(step, a, "url")
 		setIfNonEmpty(step, a, "token")
@@ -372,6 +383,7 @@ func escalationChainModelFromAPI(m map[string]any) escalationChainModel {
 			"fallback_to_all":  types.BoolValue(boolFromMap(s, "fallback_to_all", true)),
 			"user_id":          types.StringValue(strFromMap(s, "user_id")),
 			"webhook_url":      types.StringValue(strFromMap(s, "webhook_url")),
+			"headers":          headersToMap(s["headers"]),
 			"delay_minutes":    types.Int64Value(int64FromMap(s, "delay_minutes", 0)),
 			"tracker_type":     types.StringValue(strFromMap(s, "tracker_type")),
 			"url":              types.StringValue(strFromMap(s, "url")),

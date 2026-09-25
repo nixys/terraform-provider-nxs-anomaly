@@ -35,6 +35,7 @@ type chatopsChannelModel struct {
 	CommandsEnabled      types.Bool   `tfsdk:"commands_enabled"`
 	NotificationsEnabled types.Bool   `tfsdk:"notifications_enabled"`
 	WebhookURL           types.String `tfsdk:"webhook_url"`
+	Headers              types.Map    `tfsdk:"headers"`
 	ExternalID           types.String `tfsdk:"external_id"`
 	CreatedAt            types.String `tfsdk:"created_at"`
 	ProvisionedBy        types.String `tfsdk:"provisioned_by"`
@@ -83,6 +84,13 @@ func (r *ChatopsChannelResource) Schema(_ context.Context, _ resource.SchemaRequ
 			"webhook_url": schema.StringAttribute{
 				Optional: true, Computed: true, Sensitive: true,
 				Description: "Incoming webhook URL or env: secret reference used for outbound ChatOps messages.",
+			},
+			"headers": schema.MapAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				ElementType: types.StringType,
+				Description: outboundHeadersDescription,
+				Validators:  outboundHeadersValidators(),
 			},
 			"external_id": schema.StringAttribute{
 				Optional: true, Computed: true,
@@ -137,6 +145,9 @@ func (r *ChatopsChannelResource) Create(ctx context.Context, req resource.Create
 	if !plan.ExternalID.IsNull() && !plan.ExternalID.IsUnknown() {
 		body["external_id"] = plan.ExternalID.ValueString()
 	}
+	if h := headersFromAttr(plan.Headers); h != nil {
+		body["headers"] = h
+	}
 
 	result, err := r.client.post(ctx, "/api/v1/chatops/channels", body)
 	if err != nil {
@@ -190,6 +201,13 @@ func (r *ChatopsChannelResource) Update(ctx context.Context, req resource.Update
 	if !plan.ExternalID.IsNull() && !plan.ExternalID.IsUnknown() {
 		body["external_id"] = plan.ExternalID.ValueString()
 	}
+	// The API merges an update, so a headers map removed from the configuration
+	// has to be cleared explicitly: an empty object clears, an absent one keeps.
+	if h := headersFromAttr(plan.Headers); h != nil {
+		body["headers"] = h
+	} else {
+		body["headers"] = map[string]any{}
+	}
 
 	result, err := r.client.put(ctx, "/api/v1/chatops/channels/"+plan.ID.ValueString(), body)
 	if err != nil {
@@ -232,6 +250,7 @@ func chatopsChannelModelFromAPI(m map[string]any) chatopsChannelModel {
 		CommandsEnabled:      types.BoolValue(boolFromMap(m, "commands_enabled", true)),
 		NotificationsEnabled: types.BoolValue(boolFromMap(m, "notifications_enabled", true)),
 		WebhookURL:           nullableString(strFromMap(m, "webhook_url")),
+		Headers:              headersToMap(m["headers"]),
 		ExternalID:           nullableString(strFromMap(m, "external_id")),
 		CreatedAt:            types.StringValue(strFromMap(m, "created_at")),
 		ProvisionedBy:        nullableString(strFromMap(m, "provisioned_by")),

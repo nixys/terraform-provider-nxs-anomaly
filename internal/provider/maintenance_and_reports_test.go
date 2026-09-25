@@ -200,6 +200,8 @@ func nullValueOf(t attr.Type) attr.Value {
 		return types.Int64Null()
 	case types.ListType:
 		return types.ListNull(typed.ElemType)
+	case types.MapType:
+		return types.MapNull(typed.ElemType)
 	}
 	return nil
 }

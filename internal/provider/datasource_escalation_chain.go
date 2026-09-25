@@ -46,6 +46,7 @@ func (d *EscalationChainDataSource) Schema(_ context.Context, _ datasource.Schem
 						"fallback_to_all":  schema.BoolAttribute{Computed: true},
 						"user_id":          schema.StringAttribute{Computed: true},
 						"webhook_url":      schema.StringAttribute{Computed: true},
+						"headers":          schema.MapAttribute{Computed: true, Sensitive: true, ElementType: types.StringType},
 						"delay_minutes":    schema.Int64Attribute{Computed: true},
 						"tracker_type":     schema.StringAttribute{Computed: true},
 						"url":              schema.StringAttribute{Computed: true},
