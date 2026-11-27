@@ -32,6 +32,7 @@ data "anomaly_user" "example" {
 - `created_at` (String)
 - `email` (String)
 - `locale` (String) UI language for this person. Empty means the UI follows their browser.
+- `mattermost_id` (String)
 - `name` (String)
 - `notification_policies` (Attributes) (see [below for nested schema](#nestedatt--notification_policies))
 - `notification_targets` (Attributes List) (see [below for nested schema](#nestedatt--notification_targets))
@@ -40,6 +41,7 @@ data "anomaly_user" "example" {
 - `priority` (String)
 - `provisioned_by` (String) Name of the infrastructure-as-code tool that owns this object, absent when a person created it.
 - `role` (String)
+- `slack_id` (String)
 - `telegram_id` (String)
 - `timezone` (String)
 - `updated_at` (String)

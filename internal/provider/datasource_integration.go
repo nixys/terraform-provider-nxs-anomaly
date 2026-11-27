@@ -117,7 +117,7 @@ func (d *IntegrationDataSource) Read(ctx context.Context, req datasource.ReadReq
 		}
 		m = result
 	} else if !config.Name.IsNull() && !config.Name.IsUnknown() && config.Name.ValueString() != "" {
-		items, err := d.client.listAll(ctx, "/api/v1/integrations")
+		items, err := d.client.listMatching(ctx, "/api/v1/integrations", config.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("list integrations failed", err.Error())
 			return

@@ -23,16 +23,20 @@ type usersDataSourceModel struct {
 }
 
 var userItemAttrTypes = map[string]attr.Type{
-	"id":          types.StringType,
-	"name":        types.StringType,
-	"username":    types.StringType,
-	"email":       types.StringType,
-	"phone":       types.StringType,
-	"telegram_id": types.StringType,
-	"timezone":    types.StringType,
-	"on_duty":     types.BoolType,
-	"priority":    types.StringType,
-	"role":        types.StringType,
+	"id":             types.StringType,
+	"name":           types.StringType,
+	"username":       types.StringType,
+	"email":          types.StringType,
+	"phone":          types.StringType,
+	"telegram_id":    types.StringType,
+	"slack_id":       types.StringType,
+	"mattermost_id":  types.StringType,
+	"locale":         types.StringType,
+	"provisioned_by": types.StringType,
+	"timezone":       types.StringType,
+	"on_duty":        types.BoolType,
+	"priority":       types.StringType,
+	"role":           types.StringType,
 	"notification_targets": types.ListType{
 		ElemType: types.ObjectType{AttrTypes: notificationTargetAttrTypes},
 	},
@@ -58,16 +62,20 @@ func (d *UsersDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, 
 				Description: "List of all users.",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
-						"id":          schema.StringAttribute{Computed: true},
-						"name":        schema.StringAttribute{Computed: true},
-						"username":    schema.StringAttribute{Computed: true},
-						"email":       schema.StringAttribute{Computed: true},
-						"phone":       schema.StringAttribute{Computed: true},
-						"telegram_id": schema.StringAttribute{Computed: true},
-						"timezone":    schema.StringAttribute{Computed: true},
-						"on_duty":     schema.BoolAttribute{Computed: true},
-						"priority":    schema.StringAttribute{Computed: true},
-						"role":        schema.StringAttribute{Computed: true},
+						"id":             schema.StringAttribute{Computed: true},
+						"name":           schema.StringAttribute{Computed: true},
+						"username":       schema.StringAttribute{Computed: true},
+						"email":          schema.StringAttribute{Computed: true},
+						"phone":          schema.StringAttribute{Computed: true},
+						"telegram_id":    schema.StringAttribute{Computed: true},
+						"slack_id":       schema.StringAttribute{Computed: true},
+						"mattermost_id":  schema.StringAttribute{Computed: true},
+						"locale":         schema.StringAttribute{Computed: true},
+						"provisioned_by": schema.StringAttribute{Computed: true},
+						"timezone":       schema.StringAttribute{Computed: true},
+						"on_duty":        schema.BoolAttribute{Computed: true},
+						"priority":       schema.StringAttribute{Computed: true},
+						"role":           schema.StringAttribute{Computed: true},
 						"notification_targets": schema.ListNestedAttribute{
 							Computed: true,
 							NestedObject: schema.NestedAttributeObject{
@@ -108,7 +116,7 @@ func (d *UsersDataSource) Read(ctx context.Context, _ datasource.ReadRequest, re
 
 	userVals := make([]attr.Value, 0, len(items))
 	for _, m := range items {
-		obj, diags := userItemFromAPIVal(m)
+		obj, diags := userItemFromAPIVal(ctx, m)
 		resp.Diagnostics.Append(diags...)
 		if resp.Diagnostics.HasError() {
 			return
@@ -128,46 +136,6 @@ func (d *UsersDataSource) Read(ctx context.Context, _ datasource.ReadRequest, re
 	})...)
 }
 
-func userItemFromAPIVal(m map[string]any) (types.Object, diag.Diagnostics) {
-	var allDiags diag.Diagnostics
-
-	targetVals := make([]attr.Value, 0)
-	for _, t := range mapSliceFromMap(m, "notification_targets") {
-		obj, diags := types.ObjectValue(notificationTargetAttrTypes, map[string]attr.Value{
-			"channel": types.StringValue(strFromMap(t, "channel")),
-			"target":  types.StringValue(strFromMap(t, "target")),
-		})
-		allDiags.Append(diags...)
-		if allDiags.HasError() {
-			return types.ObjectUnknown(userItemAttrTypes), allDiags
-		}
-		targetVals = append(targetVals, obj)
-	}
-	targetList, diags := types.ListValue(
-		types.ObjectType{AttrTypes: notificationTargetAttrTypes}, targetVals,
-	)
-	allDiags.Append(diags...)
-	if allDiags.HasError() {
-		return types.ObjectUnknown(userItemAttrTypes), allDiags
-	}
-	policies := userNotificationPoliciesFromAPI(m["notification_policies"])
-
-	obj, diags := types.ObjectValue(userItemAttrTypes, map[string]attr.Value{
-		"id":                    types.StringValue(strFromMap(m, "id")),
-		"name":                  types.StringValue(strFromMap(m, "name")),
-		"username":              types.StringValue(strFromMap(m, "username")),
-		"email":                 types.StringValue(strFromMap(m, "email")),
-		"phone":                 types.StringValue(strFromMap(m, "phone")),
-		"telegram_id":           types.StringValue(strFromMap(m, "telegram_id")),
-		"timezone":              types.StringValue(strFromMap(m, "timezone")),
-		"on_duty":               types.BoolValue(boolFromMap(m, "on_duty", false)),
-		"priority":              types.StringValue(strDefault(strFromMap(m, "priority"), "medium")),
-		"role":                  types.StringValue(strFromMap(m, "role")),
-		"notification_targets":  targetList,
-		"notification_policies": policies,
-		"created_at":            types.StringValue(strFromMap(m, "created_at")),
-		"updated_at":            types.StringValue(strFromMap(m, "updated_at")),
-	})
-	allDiags.Append(diags...)
-	return obj, allDiags
+func userItemFromAPIVal(ctx context.Context, m map[string]any) (types.Object, diag.Diagnostics) {
+	return types.ObjectValueFrom(ctx, userItemAttrTypes, userModelFromAPI(ctx, m))
 }

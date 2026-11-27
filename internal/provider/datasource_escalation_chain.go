@@ -99,7 +99,7 @@ func (d *EscalationChainDataSource) Read(ctx context.Context, req datasource.Rea
 		}
 		m = result
 	} else if !config.Name.IsNull() && !config.Name.IsUnknown() && config.Name.ValueString() != "" {
-		items, err := d.client.listAll(ctx, "/api/v1/escalation-chains")
+		items, err := d.client.listMatching(ctx, "/api/v1/escalation-chains", config.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("list escalation chains failed", err.Error())
 			return

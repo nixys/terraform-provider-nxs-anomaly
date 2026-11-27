@@ -117,7 +117,7 @@
 
 ## 1.2.3
 
-- Remove the internal Nexus installation guide and the `publish:nexus` CI job;
+- Remove the internal registry installation guide and its CI publish job;
   the provider is installed from the Terraform Registry as `nixys/nxs-anomaly`.
 - Drop the stale publication-status report and the GitLab wiki notes from the
   release procedure.
@@ -137,3 +137,20 @@
   escalation chain data sources return the attribute too.
 - The escalation chain example gave its wait step `duration_seconds`, which does
   not exist and failed `terraform validate`; it now uses `delay_minutes`.
+
+## 1.3.1
+
+- `examples/module` is now the supported nxs-anomaly Terraform module; the
+  separate `nxs-anomaly-terraform-module` repository is deprecated in its favour.
+  Pin it with `//examples/module?ref=v1.3.1`.
+- Changelog wording only; no provider behaviour changes since 1.3.0.
+
+## 1.4.0
+
+- Support Slack and Mattermost account IDs on users and both user data sources.
+  Set an ID to an empty string to clear the association.
+- Return notification target channels, locale and provisioning ownership in
+  `anomaly_users` using the same mapping as the single-user lookup.
+- Read through the final page when the API estimates a collection's total.
+  Name and username lookups use server-side search on supported collections
+  and still require exact matches.

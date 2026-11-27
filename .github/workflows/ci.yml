@@ -14,8 +14,8 @@ jobs:
     name: Build & Vet
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-go@v7.1.0
         with:
           go-version-file: go.mod
           cache: true
@@ -26,8 +26,8 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-go@v7.1.0
         with:
           go-version-file: go.mod
           cache: true
@@ -37,13 +37,13 @@ jobs:
     name: Documentation and Examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-go@v7.1.0
         with:
           go-version-file: go.mod
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4.0.1
         with:
-          terraform_version: 1.14.0
+          terraform_version: 1.17.2
           terraform_wrapper: false
       - run: terraform fmt -check -recursive examples
       - run: make docs-check
