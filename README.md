@@ -172,6 +172,8 @@ Manages a user in the alerting service.
 | `email` | | `""` | Email address |
 | `phone` | | `""` | Phone number |
 | `telegram_id` | | `""` | Telegram chat ID |
+| `slack_id` | | API value | Slack account ID for ChatOps actions |
+| `mattermost_id` | | API value | Mattermost account ID for ChatOps actions |
 | `timezone` | | `UTC` | IANA timezone (`Europe/Moscow`, `Asia/Yekaterinburg`) |
 | `on_duty` | | `false` | Whether the user is currently on duty |
 | `priority` | | `medium` | Notification priority: `low`, `medium`, `high` |
@@ -877,7 +879,7 @@ output "alice_priority" {
 }
 ```
 
-Returned fields include `id`, `name`, `username`, `email`, `phone`, `telegram_id`, `timezone`, `on_duty`, `priority`, `role`, `notification_targets`, `notification_policies`, `created_at`, and `updated_at`.
+Returned fields include `id`, `name`, `username`, `email`, `phone`, `telegram_id`, `slack_id`, `mattermost_id`, `timezone`, `locale`, `provisioned_by`, `on_duty`, `priority`, `role`, `notification_targets`, `notification_policies`, `created_at`, and `updated_at`.
 
 ---
 

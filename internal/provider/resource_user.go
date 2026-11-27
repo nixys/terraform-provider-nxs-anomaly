@@ -37,6 +37,8 @@ type userModel struct {
 	Email                types.String `tfsdk:"email"`
 	Phone                types.String `tfsdk:"phone"`
 	TelegramID           types.String `tfsdk:"telegram_id"`
+	SlackID              types.String `tfsdk:"slack_id"`
+	MattermostID         types.String `tfsdk:"mattermost_id"`
 	Timezone             types.String `tfsdk:"timezone"`
 	Locale               types.String `tfsdk:"locale"`
 	ProvisionedBy        types.String `tfsdk:"provisioned_by"`
@@ -99,6 +101,8 @@ func (r *UserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				Computed: true,
 				Default:  stringdefault.StaticString(""),
 			},
+			"slack_id":      schema.StringAttribute{Optional: true, Computed: true, Description: "Slack account ID for ChatOps actions. Set an empty string to clear it."},
+			"mattermost_id": schema.StringAttribute{Optional: true, Computed: true, Description: "Mattermost account ID for ChatOps actions. Set an empty string to clear it."},
 			"timezone": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
@@ -281,6 +285,8 @@ func userModelFromAPI(ctx context.Context, m map[string]any) userModel {
 		Email:                types.StringValue(strFromMap(m, "email")),
 		Phone:                types.StringValue(strFromMap(m, "phone")),
 		TelegramID:           types.StringValue(strFromMap(m, "telegram_id")),
+		SlackID:              types.StringValue(strFromMap(m, "slack_id")),
+		MattermostID:         types.StringValue(strFromMap(m, "mattermost_id")),
 		Timezone:             types.StringValue(strFromMap(m, "timezone")),
 		Locale:               types.StringValue(strFromMap(m, "locale")),
 		ProvisionedBy:        nullableString(strFromMap(m, "provisioned_by")),
@@ -321,6 +327,12 @@ func userBody(plan userModel) map[string]any {
 		"priority":             plan.Priority.ValueString(),
 		"role":                 plan.Role.ValueString(),
 		"notification_targets": notificationTargetsFromPlan(plan.NotificationTargets),
+	}
+	if !plan.SlackID.IsNull() && !plan.SlackID.IsUnknown() {
+		body["slack_id"] = plan.SlackID.ValueString()
+	}
+	if !plan.MattermostID.IsNull() && !plan.MattermostID.IsUnknown() {
+		body["mattermost_id"] = plan.MattermostID.ValueString()
 	}
 	if !plan.Username.IsNull() && !plan.Username.IsUnknown() {
 		body["username"] = plan.Username.ValueString()

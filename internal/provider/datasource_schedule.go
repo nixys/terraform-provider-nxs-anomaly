@@ -93,7 +93,7 @@ func (d *ScheduleDataSource) Read(ctx context.Context, req datasource.ReadReques
 		}
 		m = result
 	} else if !config.Name.IsNull() && !config.Name.IsUnknown() && config.Name.ValueString() != "" {
-		items, err := d.client.listAll(ctx, "/api/v1/schedules")
+		items, err := d.client.listMatching(ctx, "/api/v1/schedules", config.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("list schedules failed", err.Error())
 			return

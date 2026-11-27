@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -84,6 +85,34 @@ func TestListAll_MultiPage(t *testing.T) {
 	}
 }
 
+type pageTransport func(*http.Request) (*http.Response, error)
+
+func (f pageTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func TestListMatchingEstimatedTotal(t *testing.T) {
+	const query = "Ops + R&D"
+	offset := 0
+	transport := pageTransport(func(r *http.Request) (*http.Response, error) {
+		q := r.URL.Query()
+		if q.Get("q") != query || q.Get("offset") != strconv.Itoa(offset) || q.Get("limit") != "100" {
+			t.Fatalf("unexpected query on page at offset %d: %v", offset, q)
+		}
+		items := []map[string]int{}
+		for i := offset; i < offset+100 && i < 205; i++ {
+			items = append(items, map[string]int{"id": i})
+		}
+		w := httptest.NewRecorder()
+		_ = json.NewEncoder(w).Encode(map[string]any{"items": items, "total": 101, "total_estimated": true, "total_lower_bound": true})
+		offset += 100
+		return w.Result(), nil
+	})
+	c := newClientWithOptions("http://anomaly.test", "", &http.Client{Transport: transport}, 0)
+	items, err := c.listMatching(context.Background(), "/api/v1/teams", query)
+	if err != nil || len(items) != 205 || offset != 300 {
+		t.Fatalf("got %d items in %d calls, err=%v", len(items), offset/100, err)
+	}
+}
+
 func TestListAll_Empty(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]any{
@@ -134,7 +163,7 @@ func TestUserItemFromAPIVal_Basic(t *testing.T) {
 		"created_at":           "2026-01-01T00:00:00Z",
 		"updated_at":           "2026-01-01T00:00:00Z",
 	}
-	obj, diags := userItemFromAPIVal(m)
+	obj, diags := userItemFromAPIVal(context.Background(), m)
 	if diags.HasError() {
 		t.Fatalf("unexpected diagnostics: %v", diags)
 	}
@@ -156,15 +185,24 @@ func TestUserItemFromAPIVal_Basic(t *testing.T) {
 
 func TestUserItemFromAPIVal_WithTargets(t *testing.T) {
 	m := map[string]any{
-		"id":   "usr-2",
-		"name": "Bob",
+		"id":             "usr-2",
+		"slack_id":       "U123",
+		"mattermost_id":  "mm-123",
+		"locale":         "en-US",
+		"provisioned_by": "terraform",
+		"name":           "Bob",
 		"notification_targets": []any{
-			map[string]any{"channel": "telegram", "target": "99999"},
+			map[string]any{"type": "telegram", "target": "99999"},
 		},
 	}
-	obj, diags := userItemFromAPIVal(m)
+	obj, diags := userItemFromAPIVal(context.Background(), m)
 	if diags.HasError() {
 		t.Fatalf("unexpected diagnostics: %v", diags)
+	}
+	for _, key := range []string{"slack_id", "mattermost_id", "locale", "provisioned_by"} {
+		if got := obj.Attributes()[key].(types.String).ValueString(); got != m[key] {
+			t.Errorf("%s = %q, want %q", key, got, m[key])
+		}
 	}
 	targets := obj.Attributes()["notification_targets"].(types.List)
 	if len(targets.Elements()) != 1 {

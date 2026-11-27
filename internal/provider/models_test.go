@@ -461,3 +461,19 @@ func TestUserBodyLeavesUnsetOnDutyAlone(t *testing.T) {
 		t.Errorf("on_duty = %v, want true when configured", got)
 	}
 }
+
+func TestUserBodyChatAccountIDs(t *testing.T) {
+	plan := userModel{MattermostID: types.StringUnknown()}
+	body := userBody(plan)
+	for _, key := range []string{"slack_id", "mattermost_id"} {
+		if _, sent := body[key]; sent {
+			t.Errorf("unexpected %s in request", key)
+		}
+	}
+	plan.SlackID = types.StringValue("U123")
+	plan.MattermostID = types.StringValue("")
+	body = userBody(plan)
+	if body["slack_id"] != "U123" || body["mattermost_id"] != "" {
+		t.Error("request should set the Slack account and clear the Mattermost account")
+	}
+}

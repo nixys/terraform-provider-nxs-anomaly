@@ -133,7 +133,7 @@ func (d *MaintenanceWindowDataSource) Read(ctx context.Context, req datasource.R
 		}
 		m = result
 	case !config.Name.IsNull() && !config.Name.IsUnknown() && config.Name.ValueString() != "":
-		items, err := d.client.listAll(ctx, "/api/v1/maintenance-windows")
+		items, err := d.client.listMatching(ctx, "/api/v1/maintenance-windows", config.Name.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("list maintenance windows failed", err.Error())
 			return

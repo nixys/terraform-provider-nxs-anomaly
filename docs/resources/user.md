@@ -43,12 +43,14 @@ resource "anomaly_user" "alice" {
 
 - `email` (String)
 - `locale` (String) UI language for this person. Empty means the UI follows their browser.
+- `mattermost_id` (String) Mattermost account ID for ChatOps actions. Set an empty string to clear it.
 - `notification_policies` (Attributes) Personal notification policies for default and important alerts. (see [below for nested schema](#nestedatt--notification_policies))
 - `notification_targets` (Attributes List) List of notification targets for this user. (see [below for nested schema](#nestedatt--notification_targets))
 - `on_duty` (Boolean) Manual on-duty flag. Leave unset to let responders toggle it through the API or UI.
 - `phone` (String)
 - `priority` (String) Notification priority: low, medium, high.
 - `role` (String) Login role: viewer, responder, editor, admin; empty disables login permissions.
+- `slack_id` (String) Slack account ID for ChatOps actions. Set an empty string to clear it.
 - `telegram_id` (String)
 - `timezone` (String) IANA timezone name.
 - `username` (String) Login username. Defaults to lower-cased name with spaces replaced by dots.

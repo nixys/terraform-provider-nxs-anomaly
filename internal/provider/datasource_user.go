@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 var _ datasource.DataSource = &UserDataSource{}
@@ -14,25 +13,6 @@ var _ datasource.DataSource = &UserDataSource{}
 type UserDataSource struct{ client *client }
 
 func NewUserDataSource() datasource.DataSource { return &UserDataSource{} }
-
-type userDataSourceModel struct {
-	ID                   types.String `tfsdk:"id"`
-	Username             types.String `tfsdk:"username"`
-	Name                 types.String `tfsdk:"name"`
-	Email                types.String `tfsdk:"email"`
-	Phone                types.String `tfsdk:"phone"`
-	TelegramID           types.String `tfsdk:"telegram_id"`
-	Timezone             types.String `tfsdk:"timezone"`
-	Locale               types.String `tfsdk:"locale"`
-	ProvisionedBy        types.String `tfsdk:"provisioned_by"`
-	OnDuty               types.Bool   `tfsdk:"on_duty"`
-	Priority             types.String `tfsdk:"priority"`
-	Role                 types.String `tfsdk:"role"`
-	NotificationTargets  types.List   `tfsdk:"notification_targets"`
-	NotificationPolicies types.Object `tfsdk:"notification_policies"`
-	CreatedAt            types.String `tfsdk:"created_at"`
-	UpdatedAt            types.String `tfsdk:"updated_at"`
-}
 
 func (d *UserDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_user"
@@ -42,13 +22,15 @@ func (d *UserDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, r
 	resp.Schema = schema.Schema{
 		Description: "Looks up a single nxs-anomaly user by ID or username.",
 		Attributes: map[string]schema.Attribute{
-			"id":          schema.StringAttribute{Optional: true, Computed: true, Description: "Object ID to look up. Supply either id or the name/username lookup attribute."},
-			"username":    schema.StringAttribute{Optional: true, Computed: true},
-			"name":        schema.StringAttribute{Computed: true},
-			"email":       schema.StringAttribute{Computed: true},
-			"phone":       schema.StringAttribute{Computed: true},
-			"telegram_id": schema.StringAttribute{Computed: true},
-			"timezone":    schema.StringAttribute{Computed: true},
+			"id":            schema.StringAttribute{Optional: true, Computed: true, Description: "Object ID to look up. Supply either id or the name/username lookup attribute."},
+			"username":      schema.StringAttribute{Optional: true, Computed: true},
+			"name":          schema.StringAttribute{Computed: true},
+			"email":         schema.StringAttribute{Computed: true},
+			"phone":         schema.StringAttribute{Computed: true},
+			"telegram_id":   schema.StringAttribute{Computed: true},
+			"slack_id":      schema.StringAttribute{Computed: true},
+			"mattermost_id": schema.StringAttribute{Computed: true},
+			"timezone":      schema.StringAttribute{Computed: true},
 			"locale": schema.StringAttribute{
 				Computed:    true,
 				Description: "UI language for this person. Empty means the UI follows their browser.",
@@ -89,7 +71,7 @@ func (d *UserDataSource) Configure(_ context.Context, req datasource.ConfigureRe
 }
 
 func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var config userDataSourceModel
+	var config userModel
 	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -108,7 +90,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		}
 		m = result
 	} else if !config.Username.IsNull() && !config.Username.IsUnknown() && config.Username.ValueString() != "" {
-		items, err := d.client.listAll(ctx, "/api/v1/users")
+		items, err := d.client.listMatching(ctx, "/api/v1/users", config.Username.ValueString())
 		if err != nil {
 			resp.Diagnostics.AddError("list users failed", err.Error())
 			return
@@ -128,26 +110,7 @@ func (d *UserDataSource) Read(ctx context.Context, req datasource.ReadRequest, r
 		return
 	}
 
-	model := userModelFromAPI(ctx, m)
-	state := userDataSourceModel{
-		ID:                   model.ID,
-		Username:             model.Username,
-		Name:                 model.Name,
-		Email:                model.Email,
-		Phone:                model.Phone,
-		TelegramID:           model.TelegramID,
-		Timezone:             model.Timezone,
-		Locale:               model.Locale,
-		ProvisionedBy:        model.ProvisionedBy,
-		OnDuty:               model.OnDuty,
-		Priority:             model.Priority,
-		Role:                 model.Role,
-		NotificationTargets:  model.NotificationTargets,
-		NotificationPolicies: model.NotificationPolicies,
-		CreatedAt:            model.CreatedAt,
-		UpdatedAt:            model.UpdatedAt,
-	}
-	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
+	resp.Diagnostics.Append(resp.State.Set(ctx, userModelFromAPI(ctx, m))...)
 }
 
 func userNotificationPoliciesDataSourceSchema() schema.SingleNestedAttribute {

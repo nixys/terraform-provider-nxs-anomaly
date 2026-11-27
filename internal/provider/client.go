@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -209,17 +210,29 @@ func strDefault(s, def string) string {
 
 // listAll fetches every item from a paginated collection endpoint.
 func (c *client) listAll(ctx context.Context, path string) ([]map[string]any, error) {
+	return c.listMatching(ctx, path, "")
+}
+
+// listMatching uses the reference collection's substring search to narrow a
+// lookup. Callers still check for exact matches. Older services ignore q.
+func (c *client) listMatching(ctx context.Context, path, query string) ([]map[string]any, error) {
 	const pageSize = 100
+	params := url.Values{"limit": {fmt.Sprint(pageSize)}}
+	if query != "" && len(query) <= 256 {
+		params.Set("q", query)
+	}
 	var all []map[string]any
 	for offset := 0; ; offset += pageSize {
-		result, err := c.get(ctx, fmt.Sprintf("%s?limit=%d&offset=%d", path, pageSize, offset))
+		params.Set("offset", fmt.Sprint(offset))
+		result, err := c.get(ctx, path+"?"+params.Encode())
 		if err != nil {
 			return nil, err
 		}
 		items := mapSliceFromMap(result, "items")
 		all = append(all, items...)
-		total := int(int64FromMap(result, "total", 0))
-		if len(all) >= total || len(items) == 0 {
+		total := int(int64FromMap(result, "total", -1))
+		exact := total >= 0 && !boolFromMap(result, "total_estimated", false)
+		if len(items) < pageSize || (exact && len(all) >= total) {
 			break
 		}
 	}
